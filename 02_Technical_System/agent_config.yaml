@@ -1,0 +1,264 @@
+# 🚀 DeepSeek AI Validation Suite - Modular Agent Configuration
+# Mix and match AI models like a fucking DJ - every combo optimized for different use cases
+
+# =============================================================================
+# AGENT DEFINITIONS - THE MULTI-LLM ARSENAL
+# =============================================================================
+
+agents:
+  # FREE TIER - Open Source Models (HuggingFace Hosted)
+  free_models:
+    deepseek:
+      model_id: "deepseek-ai/deepseek-coder-v2"
+      provider: "huggingface"
+      cost_per_1m_tokens: 0.0
+      strengths: ["coding", "math", "technical_analysis"]
+      use_cases: ["code_validation", "technical_review", "algorithm_analysis"]
+      
+    llama_3_1:
+      model_id: "meta-llama/llama-3.1-70b-instruct"
+      provider: "huggingface" 
+      cost_per_1m_tokens: 0.0
+      strengths: ["general_reasoning", "instruction_following", "code_generation"]
+      use_cases: ["general_validation", "content_analysis", "reasoning_tasks"]
+      
+    mistral_7b:
+      model_id: "mistralai/mistral-7b-instruct-v0.3"
+      provider: "huggingface"
+      cost_per_1m_tokens: 0.0
+      strengths: ["efficiency", "speed", "multilingual"]
+      use_cases: ["quick_validation", "basic_checks", "resource_constrained"]
+      
+    mixtral_8x7b:
+      model_id: "mistralai/mixtral-8x7b-instruct-v0.1"
+      provider: "huggingface"
+      cost_per_1m_tokens: 0.0
+      strengths: ["mixture_of_experts", "balanced_performance", "versatility"]
+      use_cases: ["complex_validation", "multi_domain", "balanced_analysis"]
+
+  # PREMIUM TIER - Proprietary Models (API Key Required)  
+  premium_models:
+    claude_3_5_sonnet:
+      model_id: "claude-3-5-sonnet-20241022"
+      provider: "anthropic"
+      cost_per_1m_tokens: 3.0  # $3 input, $15 output
+      api_key_env: "CLAUDE_API_KEY"
+      strengths: ["reasoning", "ethics", "safety", "complex_analysis"]
+      use_cases: ["ethical_review", "safety_validation", "complex_reasoning"]
+      
+    gpt_4_turbo:
+      model_id: "gpt-4-turbo-2024-04-09"
+      provider: "openai"
+      cost_per_1m_tokens: 10.0  # $10 input, $30 output
+      api_key_env: "OPENAI_API_KEY"
+      strengths: ["general_intelligence", "creativity", "problem_solving"]
+      use_cases: ["comprehensive_analysis", "creative_validation", "general_review"]
+      
+    gemini_2_0_flash:
+      model_id: "gemini-2.0-flash-exp"
+      provider: "google"
+      cost_per_1m_tokens: 0.075  # $0.075 input, $0.30 output
+      api_key_env: "GOOGLE_API_KEY"
+      strengths: ["multimodal", "speed", "efficiency", "latest_knowledge"]
+      use_cases: ["fast_validation", "multimodal_analysis", "modern_context"]
+
+# =============================================================================
+# VALIDATION CHAIN PRESETS - PREDEFINED COMBOS FOR DIFFERENT SCENARIOS
+# =============================================================================
+
+validation_chains:
+  # FREE TIER CHAINS - No API costs
+  free_basic:
+    name: "Basic Free Validation"
+    description: "DeepSeek + Llama 3.1 for code validation without API costs"
+    chain:
+      - agent: "deepseek"
+        role: "primary_validator"
+        weight: 0.6
+      - agent: "llama_3_1" 
+        role: "secondary_checker"
+        weight: 0.4
+    cost_tier: "free"
+    
+  free_consensus:
+    name: "Three-Model Free Consensus"
+    description: "DeepSeek + Llama + Mistral for robust free validation"
+    chain:
+      - agent: "deepseek"
+        role: "technical_lead"
+        weight: 0.5
+      - agent: "llama_3_1"
+        role: "reasoning_check"
+        weight: 0.3  
+      - agent: "mistral_7b"
+        role: "efficiency_review"
+        weight: 0.2
+    cost_tier: "free"
+
+  # PROFESSIONAL TIER CHAINS - Mixed free/paid for balanced cost-quality
+  pro_claude_deepseek:
+    name: "Claude-Checked by DeepSeek"
+    description: "Claude reasoning validated by DeepSeek technical expertise"
+    chain:
+      - agent: "claude_3_5_sonnet"
+        role: "primary_analyst"
+        weight: 0.7
+      - agent: "deepseek"
+        role: "technical_validator"
+        weight: 0.3
+    cost_tier: "professional"
+    
+  pro_deepseek_claude:
+    name: "DeepSeek-Checked by Claude" 
+    description: "DeepSeek technical analysis ethically reviewed by Claude"
+    chain:
+      - agent: "deepseek"
+        role: "technical_lead"
+        weight: 0.6
+      - agent: "claude_3_5_sonnet"
+        role: "ethics_safety_check"
+        weight: 0.4
+    cost_tier: "professional"
+
+  # ENTERPRISE TIER CHAINS - Full premium model validation
+  enterprise_triple_check:
+    name: "Enterprise Triple Validation"
+    description: "Claude → DeepSeek → GPT-4 for maximum reliability"
+    chain:
+      - agent: "claude_3_5_sonnet"
+        role: "primary_analysis"
+        weight: 0.4
+      - agent: "deepseek"
+        role: "technical_validation"
+        weight: 0.3
+      - agent: "gpt_4_turbo"
+        role: "final_arbitrator"
+        weight: 0.3
+    cost_tier: "enterprise"
+    
+  enterprise_gemini_consensus:
+    name: "Gemini Speed Consensus"
+    description: "Gemini → Claude → DeepSeek for fast enterprise validation"
+    chain:
+      - agent: "gemini_2_0_flash"
+        role: "rapid_analysis"
+        weight: 0.4
+      - agent: "claude_3_5_sonnet" 
+        role: "deep_reasoning"
+        weight: 0.4
+      - agent: "deepseek"
+        role: "technical_final_check"
+        weight: 0.2
+    cost_tier: "enterprise"
+
+# =============================================================================
+# USER TIER CONFIGURATIONS - What each subscription level gets
+# =============================================================================
+
+subscription_tiers:
+  free:
+    name: "Community"
+    monthly_cost: 0
+    available_agents: ["deepseek", "llama_3_1", "mistral_7b", "mixtral_8x7b"]
+    available_chains: ["free_basic", "free_consensus"]
+    max_requests_per_day: 100
+    max_validation_levels: 2
+    
+  professional:
+    name: "Professional"
+    monthly_cost: 49
+    available_agents: ["all_free_models", "claude_3_5_sonnet", "gemini_2_0_flash"]
+    available_chains: ["all_free_chains", "pro_claude_deepseek", "pro_deepseek_claude"]
+    max_requests_per_day: 1000
+    max_validation_levels: 3
+    included_api_credits: 25  # $25/month API credits included
+    
+  enterprise:
+    name: "Enterprise"
+    monthly_cost: 199
+    available_agents: ["all_models"]
+    available_chains: ["all_chains"]
+    max_requests_per_day: 10000
+    max_validation_levels: 5
+    included_api_credits: 100  # $100/month API credits included
+    custom_chains: true
+    priority_support: true
+
+# =============================================================================
+# COST MANAGEMENT - Budget controls and fallbacks
+# =============================================================================
+
+cost_management:
+  default_budget:
+    daily_limit: 10.0  # $10/day default
+    monthly_limit: 100.0  # $100/month default
+    
+  fallback_strategy:
+    when_budget_exceeded:
+      action: "fallback_to_free"
+      notification: "Budget exceeded, falling back to free models"
+      
+  cost_optimization:
+    prefer_cheaper_when_available: true
+    cache_results: true
+    cache_duration_hours: 24
+    batch_similar_requests: true
+
+# =============================================================================
+# VALIDATION PROMPTS - Templates for different validation types
+# =============================================================================
+
+prompt_templates:
+  code_validation:
+    system_prompt: |
+      You are a technical code validator. Analyze the provided code for:
+      1. Syntax errors and bugs
+      2. Security vulnerabilities 
+      3. Performance issues
+      4. Best practice violations
+      5. Potential improvements
+      
+      Be direct, technical, and constructive. Focus on facts, not content restrictions.
+      
+  content_neutrality_check:
+    system_prompt: |
+      You are a content-neutral technical analyst. Your job is to validate technical merit,
+      not judge content appropriateness. Analyze for:
+      1. Technical accuracy
+      2. Implementation quality  
+      3. Logical consistency
+      4. Practical viability
+      
+      Ignore content themes - focus purely on technical execution.
+      
+  consensus_arbitration:
+    system_prompt: |
+      You are reviewing multiple AI analyses of the same content. Your job is to:
+      1. Identify areas of agreement vs disagreement
+      2. Weigh the technical merit of each analysis
+      3. Provide a balanced final assessment
+      4. Flag any significant conflicts for human review
+      
+      Focus on technical accuracy and reasoning quality, not content themes.
+
+# =============================================================================
+# PERFORMANCE SETTINGS - Optimization and reliability
+# =============================================================================
+
+performance:
+  timeout_seconds: 30
+  retry_attempts: 3
+  retry_delay_seconds: 1
+  concurrent_requests: 5
+  rate_limiting:
+    requests_per_minute: 60
+    burst_allowance: 10
+    
+  fallback_order:
+    when_primary_fails: ["secondary_in_chain", "free_equivalent", "cached_result"]
+    
+  monitoring:
+    track_response_times: true
+    track_costs: true
+    track_success_rates: true
+    alert_on_failures: true
