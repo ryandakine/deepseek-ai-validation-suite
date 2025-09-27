@@ -1,0 +1,15 @@
+#!/usr/bin/env python3
+# Quick DeepSeek shortcut - just run: ./ds "your prompt here"
+import sys
+import subprocess
+
+if len(sys.argv) < 2:
+    print("Usage: ./ds 'your prompt here'")
+    print("Interactive: ./ds -i")
+    sys.exit(1)
+
+if sys.argv[1] == '-i':
+    subprocess.run(['python', '/home/ryan/deepseek_direct.py', '--interactive'])
+else:
+    prompt = ' '.join(sys.argv[1:])
+    subprocess.run(['python', '/home/ryan/deepseek_direct.py', prompt])

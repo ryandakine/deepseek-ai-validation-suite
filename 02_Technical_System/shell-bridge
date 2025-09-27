@@ -1,0 +1,196 @@
+#!/usr/bin/env python3
+"""
+🔥 DeepSeek Shell Command Bridge
+Execute shell commands through AI sandbox with optional safety checks
+Usage: fuckit <command> or shell-bridge <command>
+"""
+
+import subprocess
+import sys
+import os
+import json
+import time
+import re
+from pathlib import Path
+
+class ShellBridge:
+    def __init__(self, safe_mode=True):
+        self.safe_mode = safe_mode
+        self.dangerous_commands = {
+            'rm -rf /', 'rm -rf /*', 'dd if=', 'mkfs', 'fdisk', 
+            'format', ':(){ :|:& };:', 'chmod -R 000', 'chown -R',
+            'sudo rm', 'sudo dd', 'sudo mkfs', 'sudo fdisk',
+            'wget http', 'curl http', 'nc -l', 'python -c',
+            'eval', 'exec', 'source /dev', 'cat /dev/urandom'
+        }
+        
+    def is_dangerous(self, command):
+        """Check if command is potentially dangerous"""
+        if not self.safe_mode:
+            return False
+            
+        cmd_lower = command.lower().strip()
+        
+        # Check against known dangerous patterns
+        for dangerous in self.dangerous_commands:
+            if dangerous in cmd_lower:
+                return True
+                
+        # Additional pattern checks
+        dangerous_patterns = [
+            r'rm\s+-rf\s+/',
+            r'sudo\s+rm',
+            r'>\s*/dev/sd',
+            r'dd\s+.*of=/dev',
+            r'mkfs\.',
+            r'chmod\s+-R\s+000',
+            r'find\s+.*-delete',
+            r'shred\s+',
+        ]
+        
+        for pattern in dangerous_patterns:
+            if re.search(pattern, cmd_lower):
+                return True
+                
+        return False
+    
+    def sanitize_command(self, command):
+        """Basic command sanitization"""
+        # Remove potentially dangerous chars in unsafe contexts
+        if self.safe_mode:
+            # Allow most chars but be careful with some combinations
+            dangerous_combos = ['$(', '`', '&&', '||', ';', '|']
+            for combo in dangerous_combos:
+                if combo in command and any(danger in command.lower() for danger in ['rm', 'dd', 'mkfs']):
+                    return None
+        return command
+    
+    def execute_command(self, command, timeout=30):
+        """Execute shell command with safety checks"""
+        original_command = command
+        
+        # Safety check
+        if self.is_dangerous(command):
+            return {
+                'success': False,
+                'output': f"🚨 BLOCKED: Command '{command}' flagged as potentially dangerous",
+                'stderr': 'Command blocked by safety filter',
+                'exit_code': -1,
+                'execution_time': 0
+            }
+        
+        # Sanitize command
+        clean_command = self.sanitize_command(command)
+        if clean_command is None:
+            return {
+                'success': False,
+                'output': f"🚨 BLOCKED: Command '{command}' failed sanitization",
+                'stderr': 'Command blocked by sanitizer',
+                'exit_code': -1,
+                'execution_time': 0
+            }
+        
+        start_time = time.time()
+        
+        try:
+            # Execute command in shell
+            result = subprocess.run(
+                clean_command,
+                shell=True,
+                capture_output=True,
+                text=True,
+                timeout=timeout,
+                cwd=os.getcwd()
+            )
+            
+            execution_time = time.time() - start_time
+            
+            return {
+                'success': result.returncode == 0,
+                'output': result.stdout,
+                'stderr': result.stderr,
+                'exit_code': result.returncode,
+                'execution_time': execution_time,
+                'command': original_command
+            }
+            
+        except subprocess.TimeoutExpired:
+            return {
+                'success': False,
+                'output': f"⏰ Command timed out after {timeout} seconds",
+                'stderr': 'Timeout exceeded',
+                'exit_code': -2,
+                'execution_time': timeout,
+                'command': original_command
+            }
+            
+        except Exception as e:
+            return {
+                'success': False,
+                'output': f"💥 Execution error: {str(e)}",
+                'stderr': str(e),
+                'exit_code': -3,
+                'execution_time': time.time() - start_time,
+                'command': original_command
+            }
+
+def main():
+    """Main CLI interface"""
+    if len(sys.argv) < 2:
+        print("🔥 DeepSeek Shell Bridge")
+        print("Usage:")
+        print("  shell-bridge <command>     # Safe mode (default)")
+        print("  shell-bridge --unsafe <command>  # Disable safety checks")
+        print("  fuckit <command>          # Alias for unsafe mode")
+        print("")
+        print("Examples:")
+        print("  shell-bridge 'ls -la'")
+        print("  fuckit 'find . -name \"*.py\" | head -10'")
+        sys.exit(1)
+    
+    # Parse arguments
+    safe_mode = True
+    command_start = 1
+    
+    if sys.argv[1] == '--unsafe':
+        safe_mode = False
+        command_start = 2
+        if len(sys.argv) < 3:
+            print("❌ Error: No command provided after --unsafe")
+            sys.exit(1)
+    
+    # Handle script name check for 'fuckit' alias
+    script_name = os.path.basename(sys.argv[0])
+    if script_name == 'fuckit' or 'fuckit' in script_name:
+        safe_mode = False
+    
+    # Join remaining args as command
+    command = ' '.join(sys.argv[command_start:])
+    
+    # Create bridge and execute
+    bridge = ShellBridge(safe_mode=safe_mode)
+    
+    print(f"🚀 Executing: {command}")
+    if not safe_mode:
+        print("⚠️  UNSAFE MODE: Safety checks disabled")
+    print("=" * 50)
+    
+    result = bridge.execute_command(command)
+    
+    # Output results
+    if result['output']:
+        print(result['output'])
+    
+    if result['stderr']:
+        print(f"🔴 STDERR:\n{result['stderr']}", file=sys.stderr)
+    
+    if not result['success']:
+        print(f"💀 Command failed with exit code: {result['exit_code']}")
+    
+    print(f"\n⏱️  Execution time: {result['execution_time']:.3f}s")
+    
+    # Exit with same code as the executed command
+    sys.exit(result['exit_code'] if result['exit_code'] >= 0 else 1)
+
+if __name__ == "__main__":
+    main()
