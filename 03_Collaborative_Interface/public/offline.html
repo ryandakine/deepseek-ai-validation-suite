@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔄 DeepSeek AI - Offline Mode</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #0c0c0c 0%, #1a1a2e 50%, #16213e 100%);
+            font-family: 'Courier New', monospace;
+            color: #00ff88;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .offline-container {
+            background: rgba(0, 20, 40, 0.9);
+            border: 2px solid #00ff88;
+            border-radius: 15px;
+            padding: 40px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 0 50px rgba(0, 255, 136, 0.3);
+            animation: glow 2s ease-in-out infinite alternate;
+            max-width: 600px;
+        }
+        
+        @keyframes glow {
+            from { box-shadow: 0 0 30px rgba(0, 255, 136, 0.3); }
+            to { box-shadow: 0 0 60px rgba(0, 255, 136, 0.6); }
+        }
+        
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            text-shadow: 0 0 20px rgba(0, 255, 136, 0.5);
+        }
+        
+        p {
+            font-size: 1.2em;
+            margin: 15px 0;
+            line-height: 1.6;
+        }
+        
+        .features {
+            text-align: left;
+            margin: 30px 0;
+            padding: 20px;
+            background: rgba(0, 100, 200, 0.2);
+            border-radius: 10px;
+            border: 1px solid #00ff88;
+        }
+        
+        .features h3 {
+            color: #ffff88;
+            margin-bottom: 15px;
+        }
+        
+        .features ul {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .features li {
+            margin: 8px 0;
+            padding-left: 20px;
+            position: relative;
+        }
+        
+        .features li:before {
+            content: "🔥";
+            position: absolute;
+            left: 0;
+        }
+        
+        .retry-btn {
+            background: linear-gradient(45deg, #ff0066, #00ff88);
+            color: #fff;
+            font-weight: bold;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-family: 'Courier New', monospace;
+            font-size: 1.1em;
+            transition: all 0.3s;
+            margin-top: 20px;
+        }
+        
+        .retry-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(255, 0, 102, 0.5);
+        }
+        
+        .status {
+            margin: 20px 0;
+            padding: 10px 20px;
+            background: rgba(255, 136, 0, 0.2);
+            border: 1px solid #ff8800;
+            border-radius: 10px;
+            color: #ffaa00;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 0.7; }
+            50% { opacity: 1; }
+        }
+        
+        .pulse {
+            animation: pulse 1.5s infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="offline-container">
+        <h1>🔄 Offline Mode Active</h1>
+        
+        <p class="pulse">You're currently offline, but DeepSeek AI Validation still works!</p>
+        
+        <div class="status">
+            🚽 <strong>Works on the shitter with no signal!</strong>
+        </div>
+        
+        <div class="features">
+            <h3>💾 Offline Features Available:</h3>
+            <ul>
+                <li>Code validation using cached AI patterns</li>
+                <li>Local validation results with confidence scores</li>
+                <li>Pattern-based issue detection for crypto, betting, security code</li>
+                <li>Cached validation agents with realistic responses</li>
+                <li>Visual Three.js interface fully functional</li>
+                <li>Offline-first architecture with service workers</li>
+            </ul>
+        </div>
+        
+        <p>🧠 <strong>How it works:</strong><br>
+           Your validation requests are processed using cached AI patterns and learned behaviors from previous sessions. While not as comprehensive as our full 9-agent analysis, you'll still get meaningful feedback!</p>
+        
+        <p>🔄 <strong>Real-time sync:</strong><br>
+           Once you're back online, all offline validations will sync with the live system.</p>
+        
+        <button class="retry-btn" onclick="goToMain()">
+            🚀 Continue with Offline Validation
+        </button>
+        
+        <button class="retry-btn" onclick="retryConnection()" style="margin-left: 10px;">
+            🔄 Try Reconnecting
+        </button>
+    </div>
+    
+    <script>
+        function goToMain() {
+            window.location.href = '/';
+        }
+        
+        function retryConnection() {
+            // Check if we're back online
+            if (navigator.onLine) {
+                window.location.href = '/';
+            } else {
+                alert('Still offline! Continue with cached validation or try again when you have signal.');
+            }
+        }
+        
+        // Auto-redirect when back online
+        window.addEventListener('online', () => {
+            console.log('🚀 Back online! Redirecting...');
+            setTimeout(() => {
+                window.location.href = '/';
+            }, 1000);
+        });
+        
+        console.log('💾 DeepSeek AI - Offline mode ready');
+        console.log('🔥 Validation works even without internet!');
+    </script>
+</body>
+</html>

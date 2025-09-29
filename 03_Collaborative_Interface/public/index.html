@@ -1,0 +1,789 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🚀 DeepSeek AI Validation - Real-Time Collaborative</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #0c0c0c 0%, #1a1a2e 50%, #16213e 100%);
+            font-family: 'Courier New', monospace;
+            overflow: hidden;
+            color: #00ff88;
+        }
+        
+        #canvas-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+        
+        .ui-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 10;
+            pointer-events: none;
+        }
+        
+        .ui-panel {
+            position: absolute;
+            background: rgba(0, 20, 40, 0.9);
+            border: 2px solid #00ff88;
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 0 30px rgba(0, 255, 136, 0.3);
+            pointer-events: all;
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+        
+        @keyframes glow {
+            from { box-shadow: 0 0 30px rgba(0, 255, 136, 0.3); }
+            to { box-shadow: 0 0 50px rgba(0, 255, 136, 0.6); }
+        }
+        
+        .code-panel {
+            top: 20px;
+            left: 20px;
+            width: 500px;
+            height: 400px;
+            padding: 20px;
+        }
+        
+        .results-panel {
+            top: 20px;
+            right: 20px;
+            width: 450px;
+            height: 600px;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        
+        .users-panel {
+            bottom: 20px;
+            left: 20px;
+            width: 300px;
+            height: 150px;
+            padding: 15px;
+        }
+        
+        .controls-panel {
+            bottom: 20px;
+            right: 20px;
+            width: 250px;
+            height: 120px;
+            padding: 15px;
+        }
+        
+        textarea, input, button {
+            background: rgba(0, 50, 100, 0.8);
+            border: 1px solid #00ff88;
+            border-radius: 5px;
+            color: #00ff88;
+            font-family: 'Courier New', monospace;
+            padding: 10px;
+        }
+        
+        textarea {
+            width: 100%;
+            height: 280px;
+            resize: none;
+        }
+        
+        button {
+            background: linear-gradient(45deg, #ff0066, #00ff88);
+            color: #fff;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(255, 0, 102, 0.5);
+        }
+        
+        .user-avatar {
+            display: inline-block;
+            margin: 5px;
+            padding: 5px 10px;
+            background: rgba(0, 255, 136, 0.2);
+            border-radius: 15px;
+            border: 1px solid #00ff88;
+        }
+        
+        .validation-result {
+            margin: 10px 0;
+            padding: 15px;
+            background: rgba(0, 100, 200, 0.3);
+            border-left: 4px solid #00ff88;
+            border-radius: 5px;
+            animation: fadeIn 0.5s;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateX(20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        
+        .rating-excellent { border-left-color: #00ff00; }
+        .rating-very-good { border-left-color: #88ff00; }
+        .rating-good { border-left-color: #ffff00; }
+        .rating-satisfactory { border-left-color: #ff8800; }
+        .rating-needs-improvement { border-left-color: #ff0000; }
+        
+        .typing-indicator {
+            font-style: italic;
+            color: #ffff88;
+            animation: pulse 1s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; }
+        }
+        
+        h3 {
+            color: #00ff88;
+            margin-bottom: 10px;
+            text-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
+        }
+        
+        .chart-container {
+            margin: 10px 0;
+            text-align: center;
+        }
+        
+        .chart-container img {
+            max-width: 100%;
+            border-radius: 5px;
+            border: 1px solid #00ff88;
+        }
+        
+        .connection-status {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 5px 15px;
+            background: rgba(0, 255, 136, 0.8);
+            color: #000;
+            border-radius: 15px;
+            font-weight: bold;
+        }
+        
+        .disconnected {
+            background: rgba(255, 0, 0, 0.8) !important;
+            color: #fff !important;
+        }
+    </style>
+</head>
+<body>
+    <div id="canvas-container"></div>
+    
+    <div class="ui-overlay">
+        <div class="connection-status" id="connectionStatus">🔄 Connecting...</div>
+        
+        <div class="ui-panel code-panel">
+            <h3>🔥 Code Validation Arena</h3>
+            <textarea id="codeInput" placeholder="// Drop your controversial code here...
+// Crypto algorithms, betting systems, security tools
+// Let the AI agents judge your code in real-time!
+
+def suspicious_crypto_function():
+    # This will trigger our specialized validators
+    return 'potentially_risky_code'"></textarea>
+            <div style="margin-top: 10px;">
+                <select id="validationType" style="margin-right: 10px;">
+                    <option value="crypto_audit">🏦 Crypto Audit</option>
+                    <option value="betting_algorithm">🎲 Betting Algorithm</option>
+                    <option value="security_testing">🔒 Security Testing</option>
+                    <option value="general_validation">⚡ General Validation</option>
+                </select>
+                <button id="validateBtn">🚀 VALIDATE NOW</button>
+                <button id="emailBtn" style="margin-left: 10px;">📧 EMAIL REPORT</button>
+            </div>
+            <div id="typingIndicator" class="typing-indicator" style="display: none;"></div>
+        </div>
+        
+        <div class="ui-panel results-panel">
+            <h3>📊 Real-Time Validation Results</h3>
+            <div id="validationResults"></div>
+        </div>
+        
+        <div class="ui-panel users-panel">
+            <h3>👥 Active Validators</h3>
+            <div id="activeUsers"></div>
+        </div>
+        
+        <div class="ui-panel controls-panel">
+            <h3>⚙️ Session Controls</h3>
+            <input type="text" id="usernameInput" placeholder="Your name" style="width: 100%; margin-bottom: 10px;">
+            <button id="joinBtn" style="width: 100%; margin-bottom: 10px;">🎯 JOIN SESSION</button>
+            <button id="arToggleBtn" style="width: 100%; margin-bottom: 5px;">🤘 ENABLE AR GESTURES</button>
+            <button id="voiceBtn" style="width: 100%; margin-bottom: 5px;">🎤 VOICE COMMANDS</button>
+            <button id="unhingedBtn" style="width: 100%;">🔥 UNHINGED MODE</button>
+        </div>
+    </div>
+
+    <!-- Three.js, Socket.io, AR Gestures, and Voice Commands -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.js"></script>
+    <script src="ar-gestures.js"></script>
+    <script src="voice-commands.js"></script>
+    
+    <script>
+        // 🔥 Three.js Scene Setup - Sci-fi Visual Magic
+        let scene, camera, renderer, particles, validationSphere;
+        let particleSystem;
+        
+        function initThreeJS() {
+            scene = new THREE.Scene();
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setClearColor(0x000000, 0);
+            document.getElementById('canvas-container').appendChild(renderer.domElement);
+            
+            // Create particle system for AI agents
+            createParticleSystem();
+            
+            // Create central validation sphere
+            createValidationSphere();
+            
+            // Add lighting
+            const ambientLight = new THREE.AmbientLight(0x00ff88, 0.3);
+            scene.add(ambientLight);
+            
+            const pointLight = new THREE.PointLight(0x00ff88, 1, 100);
+            pointLight.position.set(0, 0, 10);
+            scene.add(pointLight);
+            
+            camera.position.z = 30;
+            
+            animate();
+        }
+        
+        function createParticleSystem() {
+            const particleCount = 2000;
+            const particles = new THREE.BufferGeometry();
+            const positions = new Float32Array(particleCount * 3);
+            const colors = new Float32Array(particleCount * 3);
+            
+            for (let i = 0; i < particleCount; i++) {
+                // Random positions in sphere
+                const radius = Math.random() * 50 + 10;
+                const theta = Math.random() * Math.PI * 2;
+                const phi = Math.random() * Math.PI;
+                
+                positions[i * 3] = radius * Math.sin(phi) * Math.cos(theta);
+                positions[i * 3 + 1] = radius * Math.sin(phi) * Math.sin(theta);
+                positions[i * 3 + 2] = radius * Math.cos(phi);
+                
+                // AI agent colors
+                const agentColors = [
+                    [0, 1, 0.5],   // DeepSeek green
+                    [0, 0.5, 1],   // Claude blue
+                    [1, 0.3, 0],   // Grok orange
+                    [1, 1, 0],     // GPT yellow
+                    [0.8, 0, 1]    // Gemini purple
+                ];
+                const color = agentColors[i % agentColors.length];
+                colors[i * 3] = color[0];
+                colors[i * 3 + 1] = color[1];
+                colors[i * 3 + 2] = color[2];
+            }
+            
+            particles.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            particles.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+            
+            const material = new THREE.PointsMaterial({
+                size: 2,
+                vertexColors: true,
+                transparent: true,
+                opacity: 0.8,
+                blending: THREE.AdditiveBlending
+            });
+            
+            particleSystem = new THREE.Points(particles, material);
+            scene.add(particleSystem);
+        }
+        
+        function createValidationSphere() {
+            const geometry = new THREE.SphereGeometry(8, 32, 32);
+            const material = new THREE.MeshPhongMaterial({
+                color: 0x00ff88,
+                transparent: true,
+                opacity: 0.3,
+                wireframe: true
+            });
+            
+            validationSphere = new THREE.Mesh(geometry, material);
+            scene.add(validationSphere);
+        }
+        
+        function animate() {
+            requestAnimationFrame(animate);
+            
+            // Rotate particle system
+            if (particleSystem) {
+                particleSystem.rotation.y += 0.002;
+                particleSystem.rotation.x += 0.001;
+            }
+            
+            // Pulse validation sphere
+            if (validationSphere) {
+                validationSphere.rotation.y += 0.01;
+                const scale = 1 + Math.sin(Date.now() * 0.003) * 0.1;
+                validationSphere.scale.set(scale, scale, scale);
+            }
+            
+            renderer.render(scene, camera);
+        }
+        
+        function addValidationEffect(confidence) {
+            // Create burst effect for validation results
+            const burstGeometry = new THREE.SphereGeometry(0.2, 8, 8);
+            const burstMaterial = new THREE.MeshBasicMaterial({
+                color: confidence > 0.8 ? 0x00ff00 : confidence > 0.6 ? 0xffff00 : 0xff6600,
+                transparent: true,
+                opacity: 1
+            });
+            
+            for (let i = 0; i < 20; i++) {
+                const burst = new THREE.Mesh(burstGeometry, burstMaterial.clone());
+                burst.position.set(
+                    (Math.random() - 0.5) * 20,
+                    (Math.random() - 0.5) * 20,
+                    (Math.random() - 0.5) * 20
+                );
+                
+                const velocity = new THREE.Vector3(
+                    (Math.random() - 0.5) * 2,
+                    (Math.random() - 0.5) * 2,
+                    (Math.random() - 0.5) * 2
+                );
+                
+                scene.add(burst);
+                
+                // Animate burst particles
+                const startTime = Date.now();
+                function animateBurst() {
+                    const elapsed = (Date.now() - startTime) / 1000;
+                    if (elapsed > 2) {
+                        scene.remove(burst);
+                        return;
+                    }
+                    
+                    burst.position.add(velocity);
+                    burst.material.opacity = 1 - (elapsed / 2);
+                    burst.scale.multiplyScalar(1.02);
+                    
+                    requestAnimationFrame(animateBurst);
+                }
+                animateBurst();
+            }
+        }
+        
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+        
+        // 🔥 Socket.io Real-time Collaboration
+        let socket;
+        let currentUser = null;
+        let sessionId = 'default-session';
+        
+        function initSocket() {
+            socket = io();
+            
+            socket.on('connect', () => {
+                console.log('🚀 Connected to validation server');
+                document.getElementById('connectionStatus').textContent = '✅ Connected';
+                document.getElementById('connectionStatus').classList.remove('disconnected');
+            });
+            
+            socket.on('disconnect', () => {
+                console.log('❌ Disconnected from server');
+                document.getElementById('connectionStatus').textContent = '❌ Disconnected';
+                document.getElementById('connectionStatus').classList.add('disconnected');
+            });
+            
+            socket.on('session-state', (data) => {
+                console.log('📊 Session state received:', data);
+                updateActiveUsers(data.session.users);
+                displayValidationHistory(data.session.validationResults);
+            });
+            
+            socket.on('user-joined', (data) => {
+                console.log('👥 User joined:', data.user.username);
+                showNotification(`👥 ${data.user.username} joined the validation session`);
+            });
+            
+            socket.on('user-left', (data) => {
+                console.log('👋 User left:', data.user.username);
+                showNotification(`👋 ${data.user.username} left the session`);
+            });
+            
+            socket.on('validation-started', (data) => {
+                showNotification(data.message);
+                showTypingIndicator(`${data.submission.user.username} is validating code...`);
+            });
+            
+            socket.on('validation-complete', (data) => {
+                hideTypingIndicator();
+                displayValidationResult(data.result);
+                addValidationEffect(data.result.validationResult.consensus_confidence);
+                showNotification(data.message);
+            });
+            
+            socket.on('validation-error', (data) => {
+                hideTypingIndicator();
+                showNotification(`❌ ${data.message}`, 'error');
+            });
+            
+            socket.on('user-typing', (data) => {
+                if (data.isTyping) {
+                    showTypingIndicator(`${data.username} is typing...`);
+                } else {
+                    hideTypingIndicator();
+                }
+            });
+        }
+        
+        function joinSession() {
+            const username = document.getElementById('usernameInput').value || 'Anonymous';
+            const avatars = ['👨‍💻', '👩‍💻', '🤖', '🧙‍♂️', '🦾', '🔥', '⚡', '🚀'];
+            const avatar = avatars[Math.floor(Math.random() * avatars.length)];
+            
+            currentUser = { username, avatar };
+            
+            socket.emit('join-session', {
+                sessionId: sessionId,
+                username: username,
+                avatar: avatar
+            });
+            
+            
+            document.getElementById('joinBtn').textContent = '✅ JOINED';
+            document.getElementById('joinBtn').disabled = true;
+        }
+        
+        function validateCode() {
+            submitForValidation(false);
+        }
+        
+        function emailValidationReport() {
+            submitForValidation(true);
+        }
+        
+        function submitForValidation(requestEmail) {
+            if (!currentUser) {
+                alert('Please join a session first!');
+                return;
+            }
+            
+            const code = document.getElementById('codeInput').value;
+            const validationType = document.getElementById('validationType').value;
+            
+            if (!code.trim()) {
+                alert('Please enter some code to validate!');
+                return;
+            }
+            
+            socket.emit('submit-code', {
+                code: code,
+                validationType: validationType,
+                language: 'python',
+                requestEmail: requestEmail,
+                unhingedMode: unhingedMode
+            });
+            
+            // Show local feedback
+            const message = requestEmail ? '📧 Validation + Email started...' : '🔍 Validation started...';
+            showNotification(message);
+        }
+        
+        function updateActiveUsers(users) {
+            const container = document.getElementById('activeUsers');
+            container.innerHTML = '';
+            
+            users.forEach(user => {
+                const userDiv = document.createElement('div');
+                userDiv.className = 'user-avatar';
+                userDiv.textContent = `${user.avatar} ${user.username}`;
+                container.appendChild(userDiv);
+            });
+        }
+        
+        function displayValidationResult(result) {
+            const container = document.getElementById('validationResults');
+            const resultDiv = document.createElement('div');
+            const validation = result.validationResult;
+            
+            // Special styling for unhinged mode
+            if (validation.unhinged_mode) {
+                resultDiv.className = `validation-result rating-battle`;
+                resultDiv.style.borderLeft = '4px solid #ff0066';
+                resultDiv.style.background = 'rgba(255, 0, 102, 0.1)';
+                resultDiv.style.boxShadow = '0 0 10px rgba(255, 0, 102, 0.3)';
+            } else {
+                resultDiv.className = `validation-result rating-${validation.overall_rating.toLowerCase().replace('_', '-')}`;
+            }
+            
+            if (validation.unhinged_mode) {
+                // 🔥 UNHINGED MODE DISPLAY
+                resultDiv.innerHTML = `
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                        <strong>🔥 ${result.user.avatar} ${result.user.username} - UNHINGED BATTLE</strong>
+                        <span style="background: #ff0066; padding: 3px 8px; border-radius: 10px; font-size: 12px; color: #fff; animation: pulse 1s infinite;">
+                            ${validation.overall_rating}
+                        </span>
+                    </div>
+                    <div style="font-size: 12px; margin-bottom: 10px; color: #ff6666;">
+                        ⚔️ <strong>BATTLE CHAOS:</strong> ${validation.rating_variance}/5 disagreement |
+                        🤖 <strong>${validation.agents_used.length}</strong> battling LLMs |
+                        ⚠️ <strong>${validation.issues_found.length}</strong> conflicting issues
+                    </div>
+                    <div style="font-size: 11px; color: #ff8888; margin-bottom: 8px;">
+                        ${validation.chain_type} • ${validation.battle_summary?.summary || 'Epic LLM Battle!'}
+                    </div>
+                    <div style="font-size: 10px; color: #ffaaaa;">
+                        Battlers: ${validation.agents_used.join(' vs ')}
+                    </div>
+                `;
+            } else {
+                // Normal consensus display
+                resultDiv.innerHTML = `
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                        <strong>${result.user.avatar} ${result.user.username}</strong>
+                        <span style="background: ${getRatingColor(validation.overall_rating)}; padding: 3px 8px; border-radius: 10px; font-size: 12px; color: #000;">
+                            ${validation.overall_rating}
+                        </span>
+                    </div>
+                    <div style="font-size: 12px; margin-bottom: 10px;">
+                        🎯 <strong>${(validation.consensus_confidence * 100).toFixed(1)}%</strong> confidence |
+                        🤖 <strong>${validation.agents_used.length}</strong> agents |
+                        ⚠️ <strong>${validation.issues_found.length}</strong> issues
+                    </div>
+                    <div style="font-size: 11px; color: #88ff88;">
+                        ${validation.chain_type} • ${validation.agents_used.join(', ')}
+                    </div>
+                `;
+            }
+            
+            container.insertBefore(resultDiv, container.firstChild);
+            
+            // Limit to 10 results
+            while (container.children.length > 10) {
+                container.removeChild(container.lastChild);
+            }
+        }
+        
+        function displayValidationHistory(results) {
+            const container = document.getElementById('validationResults');
+            container.innerHTML = '';
+            
+            results.reverse().forEach(result => {
+                displayValidationResult(result);
+            });
+        }
+        
+        function showTypingIndicator(message) {
+            const indicator = document.getElementById('typingIndicator');
+            indicator.textContent = message;
+            indicator.style.display = 'block';
+        }
+        
+        function hideTypingIndicator() {
+            document.getElementById('typingIndicator').style.display = 'none';
+        }
+        
+        function showNotification(message, type = 'info') {
+            console.log(`📢 ${message}`);
+            // Could add toast notifications here
+        }
+        
+        function getRatingColor(rating) {
+            const colors = {
+                'EXCELLENT': '#00ff00',
+                'VERY_GOOD': '#88ff00',
+                'GOOD': '#ffff00',
+                'SATISFACTORY': '#ff8800',
+                'NEEDS_IMPROVEMENT': '#ff0000'
+            };
+            return colors[rating] || '#888888';
+        }
+        
+        // AR Gesture integration
+        let arGestures = null;
+        
+        async function toggleARGestures() {
+            if (!arGestures) {
+                arGestures = new ARGestureCodeInput();
+                const initialized = await arGestures.init();
+                if (!initialized) {
+                    alert('Failed to initialize AR Gestures. Please allow camera access.');
+                    return;
+                }
+            }
+            const enabled = arGestures.toggle();
+            document.getElementById('arToggleBtn').textContent = enabled ? '🛑 DISABLE AR GESTURES' : '🤘 ENABLE AR GESTURES';
+        }
+        
+        // Voice Commands integration
+        let voiceCommands = null;
+        
+        async function toggleVoiceCommands() {
+            if (!voiceCommands) {
+                voiceCommands = new VoiceCommandSystem();
+                window.voiceCommands = voiceCommands;  // Make available globally
+                const initialized = await voiceCommands.init();
+                if (!initialized) {
+                    alert('Voice Commands not supported in this browser or microphone access denied.');
+                    return;
+                }
+            }
+            const listening = voiceCommands.toggle();
+            console.log(`🎤 Voice Commands ${listening ? 'activated' : 'deactivated'}`);
+        }
+        
+        // Unhinged Mode - LLM Battle Arena
+        let unhingedMode = false;
+        window.unhingedMode = unhingedMode;  // Make available globally
+        
+        function toggleUnhingedMode() {
+            unhingedMode = !unhingedMode;
+            window.unhingedMode = unhingedMode;  // Update global
+            const button = document.getElementById('unhingedBtn');
+            
+            if (unhingedMode) {
+                button.textContent = '🤯 UNHINGED ACTIVE';
+                button.style.background = 'linear-gradient(45deg, #ff0066, #ff6600)';
+                showUnhingedModeNotification();
+                console.log('🔥 UNHINGED MODE ACTIVATED - LLM Battle Arena!');
+            } else {
+                button.textContent = '🔥 UNHINGED MODE';
+                button.style.background = 'linear-gradient(45deg, #ff0066, #00ff88)';
+                console.log('🛄 Unhinged mode deactivated');
+            }
+        }
+        
+        function showUnhingedModeNotification() {
+            // Create dramatic unhinged mode overlay
+            const overlay = document.createElement('div');
+            overlay.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: linear-gradient(45deg, rgba(255,0,102,0.1), rgba(255,102,0,0.1));
+                z-index: 9999;
+                pointer-events: none;
+                animation: unhingedPulse 2s ease-in-out;
+            `;
+            
+            // Add warning message
+            const warning = document.createElement('div');
+            warning.style.cssText = `
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: rgba(255, 0, 0, 0.9);
+                color: white;
+                padding: 20px 40px;
+                border-radius: 15px;
+                font-family: 'Courier New', monospace;
+                font-size: 18px;
+                font-weight: bold;
+                text-align: center;
+                z-index: 10000;
+                border: 3px solid #ff0066;
+                box-shadow: 0 0 30px rgba(255, 0, 102, 0.5);
+            `;
+            
+            warning.innerHTML = `
+                <div style="margin-bottom: 15px; font-size: 24px;">🔥 UNHINGED MODE ACTIVATED 🔥</div>
+                <div style="font-size: 14px; margin-bottom: 10px;">LLMs will now BATTLE each other!</div>
+                <div style="font-size: 12px; opacity: 0.8;">Expect heated debates and conflicting opinions...</div>
+            `;
+            
+            document.body.appendChild(overlay);
+            document.body.appendChild(warning);
+            
+            // Add animation styles
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes unhingedPulse {
+                    0%, 100% { opacity: 0; }
+                    50% { opacity: 1; }
+                }
+            `;
+            document.head.appendChild(style);
+            
+            // Remove after 3 seconds
+            setTimeout(() => {
+                if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
+                if (warning.parentNode) warning.parentNode.removeChild(warning);
+            }, 3000);
+        }
+        
+        // Event Listeners
+        document.getElementById('joinBtn').addEventListener('click', joinSession);
+        document.getElementById('validateBtn').addEventListener('click', validateCode);
+        document.getElementById('emailBtn').addEventListener('click', emailValidationReport);
+        document.getElementById('arToggleBtn').addEventListener('click', toggleARGestures);
+        document.getElementById('voiceBtn').addEventListener('click', toggleVoiceCommands);
+        document.getElementById('unhingedBtn').addEventListener('click', toggleUnhingedMode);
+        
+        document.getElementById('codeInput').addEventListener('input', () => {
+            if (socket && currentUser) {
+                socket.emit('typing', { isTyping: true });
+                
+                clearTimeout(window.typingTimeout);
+                window.typingTimeout = setTimeout(() => {
+                    socket.emit('typing', { isTyping: false });
+                }, 1000);
+            }
+        });
+        
+        // Register service worker for offline functionality
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then((registration) => {
+                        console.log('💾 Service Worker registered:', registration);
+                    })
+                    .catch((error) => {
+                        console.log('❌ Service Worker registration failed:', error);
+                    });
+            });
+        }
+        
+        // Initialize everything
+        initThreeJS();
+        initSocket();
+        
+        console.log('🚀 DeepSeek AI Validation - Real-Time Collaborative Interface Loaded');
+        console.log('🔥 Ready to blow minds with AI-powered code validation!');
+        console.log('💾 Offline-first functionality enabled - works on the shitter!');
+    </script>
+</body>
+</html>
