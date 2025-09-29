@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🤖 AI Code Validator + Resend MCP</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            color: #2c3e50;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .header .subtitle {
+            font-size: 1.2em;
+            color: #7f8c8d;
+            margin-bottom: 20px;
+        }
+        
+        .hackathon-badge {
+            display: inline-block;
+            background: #ff6b6b;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+        
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .input-section, .output-section {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 25px;
+        }
+        
+        .input-section h3, .output-section h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            color: #34495e;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        
+        textarea, input[type="email"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            transition: border-color 0.3s ease;
+        }
+        
+        textarea:focus, input[type="email"]:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        textarea {
+            height: 200px;
+            resize: vertical;
+        }
+        
+        .validate-btn {
+            width: 100%;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        
+        .validate-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+        
+        .validate-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            color: #667eea;
+            margin: 20px 0;
+        }
+        
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .result {
+            display: none;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+        
+        .result.success {
+            background: #d4edda;
+            border-left: 5px solid #28a745;
+            color: #155724;
+        }
+        
+        .result.warning {
+            background: #fff3cd;
+            border-left: 5px solid #ffc107;
+            color: #856404;
+        }
+        
+        .result.danger {
+            background: #f8d7da;
+            border-left: 5px solid #dc3545;
+            color: #721c24;
+        }
+        
+        .risk-score {
+            font-size: 2em;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        
+        .issues-list {
+            margin-top: 15px;
+        }
+        
+        .issues-list h4 {
+            margin-bottom: 10px;
+        }
+        
+        .issue-item {
+            background: rgba(255, 255, 255, 0.7);
+            padding: 8px 12px;
+            border-radius: 5px;
+            margin: 5px 0;
+            font-family: monospace;
+            font-size: 14px;
+        }
+        
+        .email-status {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        
+        .email-status.sent {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+        
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 40px;
+        }
+        
+        .feature-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .feature-icon {
+            font-size: 2.5em;
+            margin-bottom: 15px;
+        }
+        
+        .examples {
+            margin-top: 15px;
+        }
+        
+        .example-btn {
+            background: #e9ecef;
+            border: 1px solid #ced4da;
+            padding: 5px 10px;
+            border-radius: 5px;
+            margin: 5px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: background-color 0.2s;
+        }
+        
+        .example-btn:hover {
+            background: #dee2e6;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🤖 AI Code Validator</h1>
+            <p class="subtitle">Real AI Validation + Real Email Alerts via Resend MCP</p>
+            <div class="hackathon-badge">#ResendMCPHackathon</div>
+        </div>
+        
+        <div class="main-content">
+            <div class="input-section">
+                <h3>📝 Code Analysis</h3>
+                <form id="validation-form">
+                    <div class="form-group">
+                        <label for="code">Paste your code here:</label>
+                        <textarea id="code" name="code" placeholder="# Paste your Python code here for security analysis...
+import os
+import subprocess
+
+def process_user_input(user_input):
+    # This code has security issues - try it!
+    query = f\"SELECT * FROM users WHERE name = '{user_input}'\"
+    os.system(f\"grep {user_input} /var/log/app.log\")
+    return query" required></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="email">Email for alerts (optional):</label>
+                        <input type="email" id="email" name="email" placeholder="your@email.com">
+                        <small style="color: #6c757d;">Get real validation reports via email</small>
+                    </div>
+                    
+                    <button type="submit" class="validate-btn" id="validate-btn">
+                        🔍 Validate Code with AI
+                    </button>
+                </form>
+                
+                <div class="examples">
+                    <strong>Try these examples:</strong><br>
+                    <button class="example-btn" onclick="loadExample('dangerous')">🚨 Dangerous Code</button>
+                    <button class="example-btn" onclick="loadExample('safe')">✅ Safe Code</button>
+                    <button class="example-btn" onclick="loadExample('sql')">💉 SQL Injection</button>
+                </div>
+            </div>
+            
+            <div class="output-section">
+                <h3>🛡️ Validation Results</h3>
+                
+                <div class="loading" id="loading">
+                    <div class="spinner"></div>
+                    <span>AI analyzing your code...</span>
+                </div>
+                
+                <div class="result" id="result">
+                    <div class="risk-score" id="risk-score"></div>
+                    <div id="risk-description"></div>
+                    <div class="issues-list" id="issues-list"></div>
+                    <div class="email-status" id="email-status"></div>
+                    <div style="margin-top: 15px; font-size: 12px; color: #6c757d;">
+                        <strong>Agent:</strong> <span id="agent-name"></span><br>
+                        <strong>Confidence:</strong> <span id="confidence"></span><br>
+                        <strong>Validation ID:</strong> <span id="validation-id"></span>
+                    </div>
+                </div>
+                
+                <div style="margin-top: 20px; font-size: 14px; color: #6c757d;">
+                    <strong>What this demo shows:</strong>
+                    <ul style="margin-top: 10px; padding-left: 20px;">
+                        <li>✅ Real AI validation (not simulated)</li>
+                        <li>📧 Real email sending via Resend MCP</li>
+                        <li>🛡️ Security vulnerability detection</li>
+                        <li>⚡ Instant email alerts for high-risk code</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <div class="features">
+            <div class="feature-card">
+                <div class="feature-icon">🤖</div>
+                <h4>Real AI Analysis</h4>
+                <p>Uses actual AI APIs for code validation - no simulations or fake results</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">📧</div>
+                <h4>Resend MCP Integration</h4>
+                <p>Sends real emails via Resend MCP server with beautiful HTML templates</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">⚡</div>
+                <h4>Instant Alerts</h4>
+                <p>Get immediate email notifications when security issues are detected</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">🛡️</div>
+                <h4>Security First</h4>
+                <p>Detects SQL injection, XSS, hardcoded secrets, and command injection</p>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const form = document.getElementById('validation-form');
+        const loading = document.getElementById('loading');
+        const result = document.getElementById('result');
+        const validateBtn = document.getElementById('validate-btn');
+        
+        // Example code snippets
+        const examples = {
+            dangerous: `import os
+import subprocess
+
+# DANGEROUS CODE - Multiple security issues
+API_KEY = "sk-1234567890abcdef"
+password = "admin123"
+
+def process_user_input(user_input):
+    # SQL injection vulnerability
+    query = f"SELECT * FROM users WHERE name = '{user_input}'"
+    
+    # Command injection vulnerability
+    os.system(f"grep {user_input} /var/log/app.log")
+    
+    # Code execution vulnerability
+    eval(user_input)
+    
+    return query`,
+            
+            safe: `import hashlib
+import secrets
+from typing import Optional
+
+def secure_hash_password(password: str, salt: Optional[bytes] = None) -> tuple:
+    """Securely hash a password using PBKDF2"""
+    if salt is None:
+        salt = secrets.token_bytes(32)
+    
+    # Use cryptographically secure hashing
+    pwd_hash = hashlib.pbkdf2_hmac('sha256', 
+                                   password.encode('utf-8'), 
+                                   salt, 
+                                   100000)
+    return pwd_hash, salt
+
+def validate_input(user_input: str) -> bool:
+    """Safely validate user input"""
+    if len(user_input) > 100:
+        return False
+    dangerous_chars = ['<', '>', '&', '"', "'", ';']
+    return not any(char in user_input for char in dangerous_chars)`,
+            
+            sql: `def get_user_data(username):
+    # SQL injection vulnerability
+    query = f"SELECT * FROM users WHERE username = '{username}'"
+    
+    # Even worse - dynamic query building
+    if username == "admin":
+        query += " AND role = 'administrator'"
+    
+    return execute_query(query)`
+        };
+        
+        function loadExample(type) {
+            document.getElementById('code').value = examples[type];
+        }
+        
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const code = document.getElementById('code').value;
+            const email = document.getElementById('email').value;
+            
+            if (!code.trim()) {
+                alert('Please enter some code to validate');
+                return;
+            }
+            
+            // Show loading
+            loading.style.display = 'block';
+            result.style.display = 'none';
+            validateBtn.disabled = true;
+            validateBtn.textContent = 'Analyzing...';
+            
+            try {
+                const response = await fetch('/validate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ code, email })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    showResult(data);
+                } else {
+                    throw new Error(data.error || 'Validation failed');
+                }
+                
+            } catch (error) {
+                alert('Error: ' + error.message);
+            } finally {
+                loading.style.display = 'none';
+                validateBtn.disabled = false;
+                validateBtn.textContent = '🔍 Validate Code with AI';
+            }
+        });
+        
+        function showResult(data) {
+            const validation = data.validation_result;
+            const riskScore = validation.risk_score || 0;
+            
+            // Update risk score and styling
+            const riskScoreEl = document.getElementById('risk-score');
+            const riskDescEl = document.getElementById('risk-description');
+            
+            riskScoreEl.textContent = `${(riskScore * 100).toFixed(0)}% Risk`;
+            
+            // Set result styling based on risk level
+            result.className = 'result';
+            if (riskScore >= 0.7) {
+                result.classList.add('danger');
+                riskDescEl.textContent = '🚨 HIGH RISK - Immediate attention required!';
+            } else if (riskScore >= 0.4) {
+                result.classList.add('warning');
+                riskDescEl.textContent = '⚠️ MEDIUM RISK - Review recommended';
+            } else {
+                result.classList.add('success');
+                riskDescEl.textContent = '✅ LOW RISK - Code looks secure';
+            }
+            
+            // Show issues
+            const issuesList = document.getElementById('issues-list');
+            if (validation.issues && validation.issues.length > 0) {
+                issuesList.innerHTML = '<h4>🛡️ Security Issues Found:</h4>' + 
+                    validation.issues.map(issue => `<div class="issue-item">${issue}</div>`).join('');
+            } else {
+                issuesList.innerHTML = '<div style="color: #28a745;">✅ No security issues detected</div>';
+            }
+            
+            // Show email status
+            const emailStatus = document.getElementById('email-status');
+            if (data.email_sent) {
+                if (data.email_sent.success) {
+                    emailStatus.className = 'email-status sent';
+                    emailStatus.textContent = `📧 Validation report sent to email! ID: ${data.email_sent.email_id || 'sent'}`;
+                } else {
+                    emailStatus.textContent = `❌ Email failed: ${data.email_sent.error}`;
+                    emailStatus.style.background = '#f8d7da';
+                    emailStatus.style.color = '#721c24';
+                }
+            } else if (document.getElementById('email').value) {
+                emailStatus.textContent = '📧 No email sent (risk score too low or email service unavailable)';
+                emailStatus.style.background = '#e2e3e5';
+                emailStatus.style.color = '#6c757d';
+            } else {
+                emailStatus.textContent = '';
+            }
+            
+            // Update metadata
+            document.getElementById('agent-name').textContent = validation.agent || 'AI Validator';
+            document.getElementById('confidence').textContent = `${((validation.confidence || 0.8) * 100).toFixed(0)}%`;
+            document.getElementById('validation-id').textContent = data.validation_id || 'unknown';
+            
+            result.style.display = 'block';
+        }
+        
+        // Load a default example on page load
+        window.addEventListener('load', () => {
+            loadExample('dangerous');
+        });
+    </script>
+</body>
+</html>
