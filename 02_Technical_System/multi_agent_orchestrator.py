@@ -233,7 +233,7 @@ class MultiAgentOrchestrator:
             raise
 
     async def _call_claude_model(self, model_id: str, prompt: str, system_prompt: str = "") -> AgentResponse:
-        """Call Anthropic Claude model"""
+        """Call Anthropic Claude model with Claude 4.5 optimizations"""
         if 'anthropic' not in self.clients:
             raise ValueError("Claude API client not available")
         
@@ -242,34 +242,74 @@ class MultiAgentOrchestrator:
         try:
             client = self.clients['anthropic']
             
+            # Claude 4.5 specific optimizations
+            is_claude_45 = "claude-4.5" in model_id
+            
+            # Enhanced system prompt for Claude 4.5
+            if is_claude_45 and "claude_45" in system_prompt:
+                # Use optimized prompt template
+                pass  # System prompt already optimized
+            elif is_claude_45:
+                # Enhance standard prompts for Claude 4.5
+                system_prompt = f"""You are Claude 4.5, leveraging enhanced reasoning capabilities.
+                
+{system_prompt}
+
+Use your advanced analysis abilities to provide deeper, more nuanced insights."""
+            
             messages = [{"role": "user", "content": prompt}]
+            
+            # Claude 4.5 gets higher token limits and better temperature settings
+            max_tokens = 2000 if is_claude_45 else 1000
+            temperature = 0.05 if is_claude_45 else 0.1  # Claude 4.5 benefits from lower temperature
             
             response = client.messages.create(
                 model=model_id,
-                max_tokens=1000,
+                max_tokens=max_tokens,
+                temperature=temperature,
                 system=system_prompt,
                 messages=messages
             )
             
-            # Calculate cost (approximate)
-            input_tokens = len(prompt.split()) * 1.3  # Rough estimate
-            output_tokens = len(response.content[0].text.split()) * 1.3
-            cost = (input_tokens / 1000000 * 3.0) + (output_tokens / 1000000 * 15.0)
+            # More accurate cost calculation with actual usage
+            if hasattr(response, 'usage'):
+                input_tokens = response.usage.input_tokens
+                output_tokens = response.usage.output_tokens
+                cost = (input_tokens / 1000000 * 3.0) + (output_tokens / 1000000 * 15.0)
+            else:
+                # Fallback estimation
+                input_tokens = len(prompt.split()) * 1.3
+                output_tokens = len(response.content[0].text.split()) * 1.3
+                cost = (input_tokens / 1000000 * 3.0) + (output_tokens / 1000000 * 15.0)
+            
+            # Higher confidence for Claude 4.5
+            confidence_score = 0.98 if is_claude_45 else 0.95
+            
+            agent_id = "claude-4.5" if is_claude_45 else "claude-3.5"
             
             return AgentResponse(
-                agent_id="claude",
+                agent_id=agent_id,
                 model_id=model_id,
                 provider="anthropic",
                 response_text=response.content[0].text,
-                confidence_score=0.95,  # Claude typically high confidence
+                confidence_score=confidence_score,
                 processing_time=time.time() - start_time,
                 cost=cost,
-                metadata={"usage": response.usage.__dict__ if hasattr(response, 'usage') else {}},
+                metadata={
+                    "usage": response.usage.__dict__ if hasattr(response, 'usage') else {},
+                    "is_claude_45": is_claude_45,
+                    "enhanced_reasoning": is_claude_45
+                },
                 timestamp=datetime.now()
             )
             
         except Exception as e:
             logger.error("❌ Claude model call failed: %s", e)
+            # Fallback to Claude 3.5 if Claude 4.5 fails
+            if is_claude_45 and "claude-4.5" in model_id:
+                logger.info("⚡ Falling back to Claude 3.5 Sonnet")
+                fallback_model = "claude-3-5-sonnet-20241022"
+                return await self._call_claude_model(fallback_model, prompt, system_prompt)
             raise
 
     async def _call_openai_model(self, model_id: str, prompt: str, system_prompt: str = "") -> AgentResponse:
@@ -351,7 +391,7 @@ class MultiAgentOrchestrator:
             raise
 
     async def _call_agent(self, agent_name: str, prompt: str, validation_type: str = "code_validation") -> AgentResponse:
-        """Call a specific AI agent based on configuration"""
+        """Call a specific AI agent based on configuration with Claude 4.5 optimizations"""
         
         # Find agent config
         agent_config = None
@@ -363,12 +403,30 @@ class MultiAgentOrchestrator:
         if not agent_config:
             raise ValueError(f"Agent '{agent_name}' not found in configuration")
         
-        # Get system prompt
-        system_prompt = self.config['prompt_templates'][validation_type]['system_prompt']
+        # Smart prompt selection for Claude 4.5
+        model_id = agent_config['model_id']
+        is_claude_45 = "claude-4.5" in model_id
+        
+        if is_claude_45:
+            # Use Claude 4.5 specific prompts if available
+            if 'claude_45_advanced_analysis' in self.config['prompt_templates']:
+                system_prompt = self.config['prompt_templates']['claude_45_advanced_analysis']['system_prompt']
+            elif 'claude_45_consensus_leader' in self.config['prompt_templates'] and 'consensus' in prompt.lower():
+                system_prompt = self.config['prompt_templates']['claude_45_consensus_leader']['system_prompt']
+            else:
+                # Fallback to enhanced standard prompt
+                base_prompt = self.config['prompt_templates'][validation_type]['system_prompt']
+                system_prompt = f"""You are Claude 4.5 with enhanced reasoning capabilities. 
+                
+{base_prompt}
+
+Leverage your advanced analysis abilities for deeper, more comprehensive insights."""
+        else:
+            # Standard prompt for other models
+            system_prompt = self.config['prompt_templates'][validation_type]['system_prompt']
         
         # Route to appropriate model caller
         provider = agent_config['provider']
-        model_id = agent_config['model_id']
         
         if provider == "huggingface":
             return await self._call_huggingface_model(model_id, prompt, system_prompt)

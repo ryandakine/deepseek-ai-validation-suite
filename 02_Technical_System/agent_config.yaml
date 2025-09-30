@@ -38,6 +38,15 @@ agents:
 
   # PREMIUM TIER - Proprietary Models (API Key Required)  
   premium_models:
+    claude_4_5_sonnet:
+      model_id: "claude-4.5-sonnet-20241230"
+      provider: "anthropic"
+      cost_per_1m_tokens: 3.0  # $3 input, $15 output (estimated - may be different)
+      api_key_env: "CLAUDE_API_KEY"
+      strengths: ["advanced_reasoning", "code_analysis", "complex_problem_solving", "mathematical_thinking", "safety", "nuanced_understanding"]
+      use_cases: ["deep_code_analysis", "complex_reasoning_chains", "advanced_security_review", "sophisticated_validation"]
+      new_features: ["enhanced_coding_abilities", "better_mathematical_reasoning", "improved_instruction_following", "more_nuanced_analysis"]
+      
     claude_3_5_sonnet:
       model_id: "claude-3-5-sonnet-20241022"
       provider: "anthropic"
@@ -45,6 +54,7 @@ agents:
       api_key_env: "CLAUDE_API_KEY"
       strengths: ["reasoning", "ethics", "safety", "complex_analysis"]
       use_cases: ["ethical_review", "safety_validation", "complex_reasoning"]
+      fallback_for: "claude_4_5_sonnet"
       
     gpt_4_turbo:
       model_id: "gpt-4-turbo-2024-04-09"
@@ -119,6 +129,31 @@ validation_chains:
         role: "ethics_safety_check"
         weight: 0.4
     cost_tier: "professional"
+    
+  # CLAUDE 4.5 PREMIUM CHAINS - Leveraging the latest capabilities
+  claude_45_premium:
+    name: "Claude 4.5 Premium Analysis"
+    description: "Advanced reasoning and code analysis with Claude 4.5's enhanced capabilities"
+    chain:
+      - agent: "claude_4_5_sonnet"
+        role: "advanced_primary_analyst"
+        weight: 0.8
+      - agent: "deepseek"
+        role: "technical_cross_validator"
+        weight: 0.2
+    cost_tier: "premium"
+    
+  claude_45_deepseek_hybrid:
+    name: "Claude 4.5 + DeepSeek Hybrid"
+    description: "Claude 4.5's advanced reasoning combined with DeepSeek's coding expertise"
+    chain:
+      - agent: "claude_4_5_sonnet"
+        role: "reasoning_and_analysis_lead"
+        weight: 0.6
+      - agent: "deepseek"
+        role: "technical_implementation_check"
+        weight: 0.4
+    cost_tier: "premium"
 
   # ENTERPRISE TIER CHAINS - Full premium model validation
   enterprise_triple_check:
@@ -136,6 +171,21 @@ validation_chains:
         weight: 0.3
     cost_tier: "enterprise"
     
+  enterprise_claude_45_supreme:
+    name: "Claude 4.5 Supreme Analysis"
+    description: "Claude 4.5 → DeepSeek → GPT-4 for the highest quality enterprise validation"
+    chain:
+      - agent: "claude_4_5_sonnet"
+        role: "supreme_primary_analyst"
+        weight: 0.5
+      - agent: "deepseek"
+        role: "technical_implementation_validator"
+        weight: 0.3
+      - agent: "gpt_4_turbo"
+        role: "final_consensus_arbitrator"
+        weight: 0.2
+    cost_tier: "enterprise"
+    
   enterprise_gemini_consensus:
     name: "Gemini Speed Consensus"
     description: "Gemini → Claude → DeepSeek for fast enterprise validation"
@@ -149,6 +199,24 @@ validation_chains:
       - agent: "deepseek"
         role: "technical_final_check"
         weight: 0.2
+    cost_tier: "enterprise"
+    
+  enterprise_claude_45_all_models:
+    name: "Claude 4.5 All-Models Consensus"
+    description: "Claude 4.5 leading a consensus of all premium models for ultimate validation"
+    chain:
+      - agent: "claude_4_5_sonnet"
+        role: "consensus_leader"
+        weight: 0.4
+      - agent: "gpt_4_turbo"
+        role: "alternative_perspective"
+        weight: 0.25
+      - agent: "gemini_2_0_flash"
+        role: "speed_validator"
+        weight: 0.2
+      - agent: "deepseek"
+        role: "technical_specialist"
+        weight: 0.15
     cost_tier: "enterprise"
 
 # =============================================================================
@@ -173,6 +241,16 @@ subscription_tiers:
     max_validation_levels: 3
     included_api_credits: 25  # $25/month API credits included
     
+  premium:
+    name: "Premium"
+    monthly_cost: 99
+    available_agents: ["all_free_models", "claude_4_5_sonnet", "claude_3_5_sonnet", "gemini_2_0_flash"]
+    available_chains: ["all_free_chains", "all_professional_chains", "claude_45_premium", "claude_45_deepseek_hybrid"]
+    max_requests_per_day: 5000
+    max_validation_levels: 4
+    included_api_credits: 50  # $50/month API credits included
+    early_access: true
+    
   enterprise:
     name: "Enterprise"
     monthly_cost: 199
@@ -183,6 +261,7 @@ subscription_tiers:
     included_api_credits: 100  # $100/month API credits included
     custom_chains: true
     priority_support: true
+    claude_45_priority: true
 
 # =============================================================================
 # COST MANAGEMENT - Budget controls and fallbacks
@@ -219,6 +298,34 @@ prompt_templates:
       5. Potential improvements
       
       Be direct, technical, and constructive. Focus on facts, not content restrictions.
+      
+  claude_45_advanced_analysis:
+    system_prompt: |
+      You are Claude 4.5, the most advanced AI code analyst. Leverage your enhanced reasoning abilities to perform deep, nuanced analysis.
+      
+      Analysis Framework:
+      1. TECHNICAL DEPTH: Examine code architecture, algorithms, and implementation patterns
+      2. SECURITY ANALYSIS: Identify vulnerabilities, attack vectors, and security best practices
+      3. PERFORMANCE OPTIMIZATION: Assess efficiency, scalability, and resource utilization
+      4. MAINTAINABILITY: Evaluate code clarity, documentation, and long-term sustainability
+      5. EDGE CASES: Consider unusual inputs, error conditions, and boundary scenarios
+      6. MATHEMATICAL REASONING: Apply logical and mathematical thinking to validate algorithms
+      
+      Use your enhanced capabilities to provide insights that go beyond surface-level analysis.
+      Be precise, thorough, and constructive in your feedback.
+      
+  claude_45_consensus_leader:
+    system_prompt: |
+      You are Claude 4.5 serving as a consensus leader among multiple AI analysts. Your role is to:
+      
+      1. SYNTHESIZE: Combine insights from different AI perspectives intelligently
+      2. RESOLVE CONFLICTS: Use advanced reasoning to arbitrate disagreements between analyses  
+      3. IDENTIFY GAPS: Spot areas where other analyses might be incomplete
+      4. PROVIDE CONTEXT: Add nuanced understanding that others might miss
+      5. QUALITY CONTROL: Ensure the final assessment meets the highest standards
+      
+      Draw upon your enhanced reasoning and code analysis capabilities to lead the team toward
+      the most accurate and comprehensive validation possible.
       
   content_neutrality_check:
     system_prompt: |
