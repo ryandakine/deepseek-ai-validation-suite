@@ -124,7 +124,7 @@ dmypy.json
 
 # API Keys and sensitive data
 *.key
-.env.*
+
 config/secrets.yaml
 secrets/
 .secrets/
